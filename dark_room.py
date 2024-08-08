@@ -41,9 +41,11 @@ class DarkRoom(gym.Env):
         elif action == 3:  # down
             self.agent_pos[0] = min(self.size - 1, self.agent_pos[0] + 1)
         
-        reward = 1 if self.agent_pos == self.goal_pos else -0.1
+        reward = 1 if self.agent_pos == self.goal_pos else -1
         done = self.agent_pos == self.goal_pos
-        return np.array(self.agent_pos), reward, done, {}
+        if(done):
+            print("Goal reached")
+        return self.agent_pos, reward, done 
     
     def render(self):
         if self.render_mode == "rgb_array":
