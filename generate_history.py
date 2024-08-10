@@ -173,12 +173,16 @@ if __name__ == "__main__":
     mp.set_start_method('spawn')
     num_workers = 8
     generate_history(45*1, num_workers)
-    generate_history(45*2, num_workers)
-    generate_history(45*3, num_workers)
+    # generate_history(45*2, num_workers)
+    # generate_history(45*3, num_workers)
     generate_history(45*4, num_workers)
     generate_history(45*5, num_workers)
     global_model = generate_history(45*6)
 
+    # save the model
+    torch.save(global_model.state_dict(), "a3c_model.pth")
+
+    print("Data collection complete")
     # Evaluate the trained model
     env = DarkRoom(size=9)
     global_model = global_model.cpu().eval()

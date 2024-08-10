@@ -25,8 +25,7 @@ class DarkRoom(gym.Env):
         if self.agent_pos is None:
             self.reset()
  
-    def reset(self, seed=None, options=None): 
-        self.goal_pos = [0, 0]
+    def reset(self):  
         self.agent_pos = [self.size // 2, self.size // 2]
         return self.agent_pos
 
@@ -41,8 +40,8 @@ class DarkRoom(gym.Env):
         elif action == 3:  # down
             self.agent_pos[0] = min(self.size - 1, self.agent_pos[0] + 1)
         
-        reward = 1 if self.agent_pos == self.goal_pos else -1
-        done = self.agent_pos == self.goal_pos
+        done = (self.agent_pos == self.goal_pos).all()
+        reward = 1 if done else -1
         if(done):
             print("Goal reached")
         return self.agent_pos, reward, done 
