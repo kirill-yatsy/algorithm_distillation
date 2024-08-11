@@ -6,7 +6,7 @@ from gymnasium import spaces
 class DarkRoom(gym.Env):
     metadata = {"render_modes": ["rgb_array", "2d_array"], "render_fps": 1}
 
-    def __init__(self, size=9, goal=(0,0), terminate_on_goal=False, render_mode="2d_array"):
+    def __init__(self, size=9, goal=(0,0), terminate_on_goal=False, render_mode="rgb_array"):
         self.size = size
         self.agent_pos = None
 
