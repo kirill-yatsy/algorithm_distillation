@@ -25,8 +25,13 @@ class DarkRoom(gym.Env):
         if self.agent_pos is None:
             self.reset()
  
-    def reset(self):  
+    def reset(self, use_random_agent_pos=False):  
         self.agent_pos = [self.size // 2, self.size // 2]
+
+        if use_random_agent_pos:
+            self.agent_pos = np.random.randint(0, self.size, size=2)
+            while (self.agent_pos == self.goal_pos).all():
+                self.agent_pos = np.random.randint(0, self.size, size=2)
         return self.agent_pos
 
 

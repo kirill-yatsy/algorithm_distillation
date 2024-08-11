@@ -36,7 +36,8 @@ class GPT(nn.Module):
         tok_emb = self.token_embedding_table(idx)
         # tok_emb = self.token_embedding_table(idx)  # (B,T,C)
         pos_emb = self.position_embedding_table(
-            torch.arange(T, device=CFG.device)
+            # torch.arange(T, device=CFG.device)
+            torch.arange(T)
         )  # (T,C)
         x = tok_emb + pos_emb  # (B,T,C)
         x = self.blocks(x)  # (B,T,C)
