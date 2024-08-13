@@ -22,12 +22,12 @@ conda activate airi
 
 4. Generate the dataset
 ```bash
-python a3c/train.py
+PYTHONPATH=$(pwd) python a3c/train.py
 ```
 
 5. Train the transformer model
 ```bash
-python gpt/train.py
+PYTHONPATH=$(pwd) python gpt/train.py
 ```
 
 6. Open the notebook notebooks/show_in_context_learning.ipynb run the cells to see the comparison between a3c and transformer model.

@@ -6,7 +6,7 @@ from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from gpt.A3CDataset import A3CDataset
-from gpt.GPT import GPT, ADTransformer
+from gpt.GPT import GPT
 from gpt.Tokenizer import Tokenizer
 from gpt.config import CFG
 
