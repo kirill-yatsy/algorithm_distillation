@@ -13,12 +13,15 @@ class A3CDataset(torch.utils.data.Dataset):
         return len(self.global_history)
 
     def crop(self, arr):
-        if len(arr) > CFG.block_size // 4:
-            # make sequence CFG.block_size wize by randomly cropping the sequence
-            start_index = np.random.randint(0, len(arr) - CFG.block_size // 4)
-            arr = arr[start_index : start_index + CFG.block_size // 4]
+        if len(arr) > CFG.context_size // 4:
+            # make sequence CFG.context_size wize by randomly cropping the sequence
+            start_index = np.random.randint(0, len(arr) - CFG.context_size // 4)
+            arr = arr[start_index : start_index + CFG.context_size // 4]
 
-        take_first = np.random.randint(2, len(arr))
+        if len(arr) == 2:
+            take_first = 0
+        else:
+            take_first = np.random.randint(2, len(arr))
         target = arr[-1]
         arr = arr[: take_first - 1]
         return arr, target
@@ -31,7 +34,7 @@ class A3CDataset(torch.utils.data.Dataset):
         tokenized = self.tokenizer(learning_history)
         tensor = torch.tensor(tokenized, dtype=torch.long)
         action = torch.tensor(target[2], dtype=torch.long)
-        if tensor.shape[0] > CFG.block_size:
+        if tensor.shape[0] > CFG.context_size:
             print(tensor.shape)
 
         return tensor, action

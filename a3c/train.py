@@ -33,7 +33,7 @@ def generate_history(seed, num_workers=4):
     global_model = ActorCritic(input_dim, action_space).to(device)
     global_model.share_memory()
     global_lock = mp.Lock()
-    optimizer = optim.Adam(global_model.parameters(), lr=1e-4)
+    optimizer = optim.Adam(global_model.parameters(), lr=1e-4, weight_decay=1e-5, betas=(0.9, 0.99))
     
     
     workers = [Worker(global_model, optimizer, input_dim, action_space, global_ep, res_queue, global_lock, i, device) for i in range(num_workers)]
@@ -46,13 +46,10 @@ def generate_history(seed, num_workers=4):
 
 if __name__ == "__main__":
     mp.set_start_method('spawn')
-    num_workers = 8
-    generate_history(45*1, num_workers)
-    # generate_history(45*2, num_workers)
-    # generate_history(45*3, num_workers)
-    generate_history(45*4, num_workers)
-    generate_history(45*5, num_workers)
-    global_model = generate_history(45*6)
+    num_workers = 30
+    [generate_history(45*i, num_workers) for i in range(1, 20)]
+     
+    global_model = generate_history(98345)
 
     # save the model
     model_path = "models/a3c_model.pth"
@@ -60,9 +57,6 @@ if __name__ == "__main__":
     torch.save(global_model.state_dict(), "models/a3c_model.pth")
 
     print("Data collection complete")
-    # Evaluate the trained model
-    env = DarkRoom(size=9)
-    global_model = global_model.cpu().eval()
     
     # merge all csv files into one and delete the individual files
     data_files = [f"data/worker_{i}_data.csv" for i in range(num_workers)] 
@@ -77,19 +71,4 @@ if __name__ == "__main__":
                         continue
                     writer.writerow(row)
             os.remove(data_file)
-
-        
-
-    with torch.no_grad():
-        state = env.reset()
-        done = False
-        while not done:
-            policy, _ = global_model(torch.tensor(state, dtype=torch.float32).unsqueeze(0))
-            action = torch.softmax(policy, dim=-1).argmax().item()
-            state, reward, done = env.step(action)
-            
-            print_grid(env.render())
-            print(f"Action: {action_to_text[action]}, Reward: {reward}")
-            sleep(0.5)
-
-        print("Visualization complete")
+ 

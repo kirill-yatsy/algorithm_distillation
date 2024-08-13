@@ -11,10 +11,11 @@ class GPT(nn.Module):
         super().__init__()
         # each token directly reads off the logits for the next token from a lookup table
         self.token_embedding_table = nn.Embedding(CFG.vocab_size, CFG.n_embd)
-        self.position_embedding_table = nn.Embedding(CFG.block_size, CFG.n_embd)
+        self.position_embedding_table = nn.Embedding(CFG.context_size, CFG.n_embd)
         self.blocks = nn.Sequential(
             *[Block(CFG.n_embd, n_head=CFG.n_head) for _ in range(CFG.n_layer)]
         )
+        self.embed_norm = nn.BatchNorm1d(CFG.n_embd)
         self.ln_f = nn.LayerNorm(CFG.n_embd)  # final layer norm
         self.lm_head = nn.Linear(CFG.n_embd, CFG.action_dim)
 
@@ -30,14 +31,13 @@ class GPT(nn.Module):
             torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
 
     def forward(self, idx, targets=None):
-        B, T = idx.shape
-
+        B, T = idx.shape 
         # idx and targets are both (B,T) tensor of integers
         tok_emb = self.token_embedding_table(idx)
         # tok_emb = self.token_embedding_table(idx)  # (B,T,C)
         pos_emb = self.position_embedding_table(
             # torch.arange(T, device=CFG.device)
-            torch.arange(T)
+            torch.arange(T, device=idx.device)
         )  # (T,C)
         x = tok_emb + pos_emb  # (B,T,C)
         x = self.blocks(x)  # (B,T,C)

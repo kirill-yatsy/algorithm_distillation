@@ -52,9 +52,6 @@ class Worker(mp.Process):
 
     def save_step_data(self, step, action, reward, x, y):
         self.history.append([self.uniq_guid, step, action, reward, x, y])
-        # with open(self.data_file, "a", newline="") as file:
-        #     writer = csv.writer(file)
-        #     writer.writerow([self.uniq_guid, step, action, reward, x, y])
 
     def save_history(self):
         os.makedirs(os.path.dirname(self.data_file), exist_ok=True)
@@ -63,9 +60,9 @@ class Worker(mp.Process):
             writer.writerows(self.history)
     
     def run(self):
-        num_episodes = 1000
+        num_episodes = 500
         while self.global_ep.value < num_episodes:
-            state = self.env.reset()
+            state = self.env.reset(use_random_agent_pos=True)
             state = (
                 torch.tensor(state, dtype=torch.float32).unsqueeze(0).to(self.device)
             )
@@ -83,18 +80,20 @@ class Worker(mp.Process):
                     .to(self.device)
                 )
                 seq_len += 1
-                total_reward += reward
+                total_reward += reward 
 
                 self.history.append([self.uniq_guid, seq_len, action, reward, next_state[0, 0].item(), next_state[0, 1].item()])
 
-                
 
                 self.optimize(state, next_state, reward, action, done, value)
                 state = next_state
 
-                if seq_len > 2000:
+                
+
+                if seq_len > 1000:
                     print(f"Worker {self.worker_id} reached max steps")
-                    state = self.env.reset()
+                    break
+                    state = self.env.reset(use_random_agent_pos=True)
                     state = (
                         torch.tensor(state, dtype=torch.float32)
                         .unsqueeze(0)
@@ -102,6 +101,7 @@ class Worker(mp.Process):
                     )
                     seq_len = 0
                     total_reward = 0
+                    self.history = []
 
             with self.global_ep.get_lock():
                 current_ep = self.global_ep.value
@@ -127,8 +127,13 @@ class Worker(mp.Process):
         actor_loss = -self.local_model(state)[0][0, action] * td_error.detach()
         critic_loss = F.smooth_l1_loss(value, td_target.detach())
 
-        loss = actor_loss + 0.5 * critic_loss
+        # entropy = Categorical(torch.softmax(self.local_model(state)[0], dim=-1)).entropy()
+
+        loss = actor_loss + 0.5 * critic_loss  
         loss.backward()
+
+        torch.nn.utils.clip_grad_norm_(self.local_model.parameters(), 0.5)
+
 
         with self.global_lock:
             for local_param, global_param in zip(
@@ -142,6 +147,5 @@ class Worker(mp.Process):
 
         for local_param, global_param in zip(
             self.local_model.parameters(), self.global_model.parameters()
-        ):
-            # without next magic steps reach 2000 and never recover from it
-            local_param.data.copy_(0.999 * local_param.data + 0.001 * global_param.data)
+        ): 
+            local_param.data.copy_(global_param.data)

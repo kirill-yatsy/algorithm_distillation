@@ -15,3 +15,4 @@ class MultiHeadAttention(nn.Module):
         out = torch.cat([h(x) for h in self.heads], dim=-1)
         out = self.dropout(self.proj(out))
         return out
+    

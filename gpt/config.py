@@ -8,23 +8,23 @@ class Config:
     end_token = 2
 
     # model parameters
-    block_size = 512
-    batch_size = 64
+    context_size = 128
+    batch_size = 256
     
-    n_embd = 128
-    n_head = 2
-    n_layer = 3
+    n_embd = 256
+    n_head = 6
+    n_layer = 12
     dropout = 0.2
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    learning_rate = 3e-4
-    epoch = 10
+    learning_rate = 1e-5
+    epoch = 30
     
     # environment parameters
     action_dim = 5 # left, right, up, down, stay
     grid_dim = 50 # size of the grid
     system_dim = 3 # system tokens (start, padding, end)
-    reward_dim = 2 # 1, -1
+    reward_dim = 4 # 1, -1, -2, -3
 
     vocab_size = 0
     

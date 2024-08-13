@@ -6,7 +6,7 @@ from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from gpt.A3CDataset import A3CDataset
-from gpt.GPT import GPT
+from gpt.GPT import GPT, ADTransformer
 from gpt.Tokenizer import Tokenizer
 from gpt.config import CFG
 
@@ -54,7 +54,8 @@ test_data_loader = DataLoader(
 )
 
 
-model = GPT()
+model = GPT() 
+
 m = model.to(CFG.device)
 print(sum(p.numel() for p in m.parameters()) / 1e6, "M parameters")
 
@@ -62,8 +63,8 @@ print(sum(p.numel() for p in m.parameters()) / 1e6, "M parameters")
 optimizer = torch.optim.AdamW(model.parameters(), lr=CFG.learning_rate)
 
 
-linear_schedule = torch.optim.lr_scheduler.LambdaLR(
-    optimizer, lambda i: min(1.0, i / (CFG.epoch * len(train_data_loader)))
+cosine_schedule = torch.optim.lr_scheduler.CosineAnnealingLR(
+    optimizer, CFG.epoch * len(train_data_loader), eta_min=3e-7 
 )
 
 writer = SummaryWriter()
@@ -86,11 +87,10 @@ for epoch in range(CFG.epoch):
             "Learning rate",
             optimizer.param_groups[0]["lr"],
             epoch * len(train_data_loader) + batch,
-        )
-
-        loss.backward()
-        linear_schedule.step()
+        ) 
+        loss.backward() 
         optimizer.step()
+        cosine_schedule.step()
     model.eval()
     with torch.no_grad():
         total_correct = 0
@@ -106,10 +106,10 @@ for epoch in range(CFG.epoch):
             total_correct += (logits.argmax(1) == y).sum().item()
             writer.add_scalar("Loss/val", loss, epoch * len(test_data_loader) + batch) 
         writer.add_scalar(
-            "Accuracy/val", total_correct / len(test_data_loader), epoch 
+            "Accuracy/val", total_correct / (len(test_data_loader) * CFG.batch_size), epoch 
         )
         # add accuracy to tqdm
-        tqdm.write(f"Epoch {epoch} Accuracy: {total_correct / len(test_data_loader)}")
+        tqdm.write(f"Epoch {epoch}, Total correct: {total_correct}, Length: {len(test_data_loader)}, Accuracy: {total_correct / (len(test_data_loader) * CFG.batch_size)}")
 
 # save the model
 model_path = "models/gpt_model.pth"
