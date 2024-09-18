@@ -1,6 +1,6 @@
 # Algorithm Distillation
 
-This repository contains ~~an implementation~~ try to implement of Algorithm Distillation, a method for distilling reinforcement learning algorithms into neural networks by modeling their training histories with a causal sequence model. For more details, please refer to the original paper: [In-context Reinforcement Learning with Algorithm Distillation](https://arxiv.org/pdf/2210.14215).
+Training transformer to learn offline A3C learning history
 
 ## Quick Start
 
