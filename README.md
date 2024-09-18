@@ -17,7 +17,7 @@ conda env create -f env.yml
 
 3. Activate the environment
 ```bash
-conda activate airi
+conda activate al_dis
 ```
 
 4. Generate the dataset
